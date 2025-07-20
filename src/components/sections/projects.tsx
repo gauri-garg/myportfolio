@@ -2,7 +2,6 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import useLocalStorage from "react-use-localstorage";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -41,44 +40,49 @@ export function Projects() {
   const { toast } = useToast();
   const [isClient, setIsClient] = useState(false);
   
-  // Use local state first
-  const [githubUsernameState, setGithubUsernameState] = useState("gaurigr");
-  const [selectedRepoIdsState, setSelectedRepoIdsState] = useState<number[]>([]);
-
-  // Use useLocalStorage hook conditionally
-  const [githubUsername, setGithubUsername] = useLocalStorage("githubUsername", "gaurigr");
-  const [storedSelectedRepoIds, setStoredSelectedRepoIds] = useLocalStorage("selectedRepoIds", "[]");
+  const [githubUsername, setGithubUsername] = useState("gauri-garg");
+  const [selectedRepoIds, setSelectedRepoIds] = useState<number[]>([]);
   
   const [isLoading, setIsLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [allRepos, setAllRepos] = useState<GitHubRepo[]>([]);
 
+  // On initial client-side mount, load data from localStorage
   useEffect(() => {
     setIsClient(true);
-    // Sync from localStorage on mount
-    setGithubUsernameState(githubUsername);
-    try {
-      setSelectedRepoIdsState(JSON.parse(storedSelectedRepoIds));
-    } catch {
-      setSelectedRepoIdsState([]);
+    const storedUsername = localStorage.getItem("githubUsername");
+    if (storedUsername) {
+      setGithubUsername(JSON.parse(storedUsername));
+    }
+    const storedRepoIds = localStorage.getItem("selectedRepoIds");
+    if (storedRepoIds) {
+      try {
+        setSelectedRepoIds(JSON.parse(storedRepoIds));
+      } catch {
+        setSelectedRepoIds([]);
+      }
     }
   }, []);
 
-  const handleSetGithubUsername = (username: string) => {
-    setGithubUsernameState(username);
-    setGithubUsername(username);
-  };
+  // Persist githubUsername to localStorage whenever it changes
+  useEffect(() => {
+    if (isClient) {
+      localStorage.setItem("githubUsername", JSON.stringify(githubUsername));
+    }
+  }, [githubUsername, isClient]);
 
-  const handleSetSelectedRepoIds = (ids: number[]) => {
-    setSelectedRepoIdsState(ids);
-    setStoredSelectedRepoIds(JSON.stringify(ids));
-  };
+  // Persist selectedRepoIds to localStorage whenever they change
+  useEffect(() => {
+    if (isClient) {
+      localStorage.setItem("selectedRepoIds", JSON.stringify(selectedRepoIds));
+    }
+  }, [selectedRepoIds, isClient]);
   
   const fetchRepos = useCallback(async () => {
-    if (!githubUsernameState) return;
+    if (!githubUsername) return;
     setIsLoading(true);
     try {
-      const repos = await getGitHubRepos(githubUsernameState);
+      const repos = await getGitHubRepos(githubUsername);
       setAllRepos(repos);
     } catch (error) {
       toast({
@@ -90,7 +94,7 @@ export function Projects() {
     } finally {
       setIsLoading(false);
     }
-  }, [githubUsernameState, toast]);
+  }, [githubUsername, toast]);
 
   useEffect(() => {
     if (isClient) {
@@ -98,7 +102,7 @@ export function Projects() {
     }
   }, [fetchRepos, isClient]);
   
-  const displayedProjects = allRepos.filter(repo => selectedRepoIdsState.includes(repo.id));
+  const displayedProjects = allRepos.filter(repo => selectedRepoIds.includes(repo.id));
 
   if (!isClient) {
     return (
@@ -135,11 +139,11 @@ export function Projects() {
           <ManageProjectsDialog
             isOpen={isDialogOpen}
             setIsOpen={setIsDialogOpen}
-            githubUsername={githubUsernameState}
-            setGithubUsername={handleSetGithubUsername}
+            githubUsername={githubUsername}
+            setGithubUsername={setGithubUsername}
             allRepos={allRepos}
-            selectedRepoIds={selectedRepoIdsState}
-            setSelectedRepoIds={handleSetSelectedRepoIds}
+            selectedRepoIds={selectedRepoIds}
+            setSelectedRepoIds={setSelectedRepoIds}
             onRefresh={fetchRepos}
             isFetchingRepos={isLoading}
           />
@@ -199,5 +203,4 @@ export function Projects() {
     </section>
   );
 }
-
     

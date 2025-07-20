@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState } from "react";
@@ -17,7 +18,7 @@ export function Header() {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 overflow-hidden">
       <div className="container flex h-14 max-w-screen-2xl items-center">
         <div className="mr-4 flex">
           <Link href="/" className="mr-6 flex items-center space-x-2">
@@ -75,6 +76,11 @@ export function Header() {
             </SheetContent>
           </Sheet>
         </div>
+      </div>
+       <div className="absolute bottom-0 left-0 w-full h-16 text-primary/10" style={{ zIndex: -1 }}>
+        <svg fill="currentColor" viewBox="0 0 1440 120">
+          <path d="M1440,32L1344,48C1248,64,1056,96,864,90.7C672,85,480,43,288,37.3C96,32,0,64,0,64L0,120L1440,120L1440,32Z"></path>
+        </svg>
       </div>
     </header>
   );

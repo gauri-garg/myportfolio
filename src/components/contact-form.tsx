@@ -15,21 +15,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2 } from "lucide-react";
+import { Send } from "lucide-react";
 
 const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters."),
   email: z.string().email("Please enter a valid email address."),
   message: z.string().min(10, "Message must be at least 10 characters."),
 });
-
-async function submitMessage(data: z.infer<typeof formSchema>) {
-  // This is a placeholder. In a real application, you would send this data
-  // to your backend or a third-party service.
-  console.log("Form submitted:", data);
-  await new Promise(resolve => setTimeout(resolve, 1000));
-  return { success: true, message: "Your message has been sent!" };
-}
 
 export function ContactForm() {
   const { toast } = useToast();
@@ -42,23 +34,25 @@ export function ContactForm() {
     },
   });
 
-  async function onSubmit(values: z.infer<typeof formSchema>) {
+  function onSubmit(values: z.infer<typeof formSchema>) {
+    const to_email = "garg.gauri.1020@gmail.com";
+    const subject = `New message from ${values.name} via Portfolio`;
+    const body = `Name: ${values.name}\nEmail: ${values.email}\n\nMessage:\n${values.message}`;
+    
+    const mailtoLink = `mailto:${to_email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
     try {
-      const result = await submitMessage(values);
-      if (result.success) {
-        toast({
-          title: "Success!",
-          description: result.message,
-        });
-        form.reset();
-      } else {
-        throw new Error("Submission failed");
-      }
-    } catch (error) {
+      window.location.href = mailtoLink;
       toast({
+        title: "Email client opened",
+        description: "Please complete sending the message in your email application.",
+      });
+      form.reset();
+    } catch (error) {
+       toast({
         variant: "destructive",
         title: "Uh oh! Something went wrong.",
-        description: "There was a problem sending your message. Please try again.",
+        description: "Could not open your email client. Please try again or send an email manually.",
       });
     }
   }
@@ -106,7 +100,7 @@ export function ContactForm() {
           )}
         />
         <Button type="submit" className="w-full bg-accent hover:bg-accent/90 text-accent-foreground" disabled={form.formState.isSubmitting}>
-          {form.formState.isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+           <Send className="mr-2 h-4 w-4" />
           Send Message
         </Button>
       </form>

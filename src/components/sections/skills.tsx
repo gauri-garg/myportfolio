@@ -1,15 +1,16 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Codepen, Database, Cloud, Server, Smartphone, Component } from "lucide-react";
+import { FileCode, Server, Database, Code, Box } from "lucide-react";
 
 const skillsData = [
-  { name: "React & Next.js", level: 95, icon: <Codepen className="h-8 w-8 text-primary" />, color: "hsl(var(--chart-1))" },
-  { name: "TypeScript", level: 90, icon: <Component className="h-8 w-8 text-primary" />, color: "hsl(var(--chart-2))" },
-  { name: "Node.js & Express", level: 85, icon: <Server className="h-8 w-8 text-primary" />, color: "hsl(var(--chart-3))" },
-  { name: "SQL & NoSQL", level: 80, icon: <Database className="h-8 w-8 text-primary" />, color: "hsl(var(--chart-4))" },
-  { name: "Cloud Services (GCP/AWS)", level: 75, icon: <Cloud className="h-8 w-8 text-primary" />, color: "hsl(var(--chart-5))" },
-  { name: "Mobile Development", level: 70, icon: <Smartphone className="h-8 w-8 text-primary" />, color: "hsl(var(--chart-1))" },
+  { name: "HTML", level: 95, icon: <FileCode className="h-8 w-8 text-primary" />, color: "hsl(var(--chart-1))" },
+  { name: "CSS", level: 90, icon: <FileCode className="h-8 w-8 text-primary" />, color: "hsl(var(--chart-2))" },
+  { name: "JavaScript", level: 85, icon: <Code className="h-8 w-8 text-primary" />, color: "hsl(var(--chart-5))" },
+  { name: "Bootstrap", level: 88, icon: <Box className="h-8 w-8 text-primary" />, color: "hsl(var(--chart-3))" },
+  { name: "PHP", level: 82, icon: <Server className="h-8 w-8 text-primary" />, color: "hsl(var(--chart-4))" },
+  { name: "Laravel", level: 80, icon: <Server className="h-8 w-8 text-primary" />, color: "hsl(var(--chart-1))" },
+  { name: "SQL & MySQL", level: 85, icon: <Database className="h-8 w-8 text-primary" />, color: "hsl(var(--chart-2))" },
 ];
 
 export function Skills() {

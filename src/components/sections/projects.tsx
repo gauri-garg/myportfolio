@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
@@ -34,6 +35,8 @@ async function getGitHubRepos(username: string): Promise<GitHubRepo[]> {
       return [];
     }
 }
+
+const defaultPlaceholder = "https://placehold.co/600x400/3F51B5/FFFFFF?text=GG&font=spacgrotesk";
 
 export function Projects() {
   const { toast } = useToast();
@@ -173,13 +176,13 @@ export function Projects() {
               <Card key={project.id} className="flex flex-col overflow-hidden transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 fade-in" style={{ animationDelay: `${index * 150}ms` }}>
                 <CardHeader className="p-0">
                   <Image
-                    src={projectImages[project.id] || `https://placehold.co/600x400.png`}
+                    src={projectImages[project.id] || defaultPlaceholder}
                     alt={project.name}
                     width={600}
                     height={400}
                     className="rounded-t-lg object-cover aspect-[3/2] w-full"
                     data-ai-hint="project screenshot"
-                    onError={(e) => e.currentTarget.src = `https://placehold.co/600x400.png`}
+                    onError={(e) => e.currentTarget.src = defaultPlaceholder}
                   />
                 </CardHeader>
                  <CardContent className="flex-grow p-6">

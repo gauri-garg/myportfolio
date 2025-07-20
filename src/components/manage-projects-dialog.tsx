@@ -14,8 +14,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Settings, RefreshCw, Loader2 } from "lucide-react";
+import { Settings, RefreshCw, Loader2, Upload } from "lucide-react";
 import type { GitHubRepo } from "./sections/projects";
+import Image from "next/image";
 
 interface ManageProjectsDialogProps {
   isOpen: boolean;
@@ -52,11 +53,18 @@ export function ManageProjectsDialog({
     setSelectedRepoIds(newSelectedRepoIds);
   };
 
-  const handleImageChange = (repoId: number, imageUrl: string) => {
-    setProjectImages({
-      ...projectImages,
-      [repoId]: imageUrl,
-    });
+  const handleImageUpload = (repoId: number, event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setProjectImages({
+          ...projectImages,
+          [repoId]: reader.result as string,
+        });
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const selectedRepos = allRepos.filter(repo => selectedRepoIds.includes(repo.id));
@@ -73,7 +81,7 @@ export function ManageProjectsDialog({
         <DialogHeader>
           <DialogTitle>Manage Projects</DialogTitle>
           <DialogDescription>
-            Select repositories to display and optionally add a custom image URL for each.
+            Select repositories to display and upload a custom image for each project.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
@@ -133,21 +141,33 @@ export function ManageProjectsDialog({
               </ScrollArea>
             </div>
             <div>
-                <Label>Project Image URLs (Optional)</Label>
+                <Label>Project Images</Label>
                 <ScrollArea className="h-72 w-full rounded-md border mt-2">
                     <div className="p-4 space-y-4">
                         {selectedRepos.length > 0 ? selectedRepos.map(repo => (
-                            <div key={`img-${repo.id}`} className="space-y-1">
-                                <Label htmlFor={`img-url-${repo.id}`} className="text-sm font-medium">{repo.name}</Label>
-                                <Input 
-                                    id={`img-url-${repo.id}`}
-                                    placeholder="https://example.com/image.png"
-                                    value={projectImages[repo.id] || ''}
-                                    onChange={(e) => handleImageChange(repo.id, e.target.value)}
-                                />
+                            <div key={`img-${repo.id}`} className="space-y-2">
+                                <Label htmlFor={`img-upload-${repo.id}`} className="text-sm font-medium">{repo.name}</Label>
+                                <div className="flex items-center gap-2">
+                                  <Input 
+                                      id={`img-upload-${repo.id}`}
+                                      type="file"
+                                      accept="image/*"
+                                      onChange={(e) => handleImageUpload(repo.id, e)}
+                                      className="text-xs"
+                                  />
+                                  {projectImages[repo.id] && (
+                                    <Image 
+                                      src={projectImages[repo.id]} 
+                                      alt={`${repo.name} preview`} 
+                                      width={32} 
+                                      height={32} 
+                                      className="rounded-sm object-cover h-8 w-8"
+                                    />
+                                  )}
+                                </div>
                             </div>
                         )) : (
-                            <p className="text-sm text-muted-foreground text-center pt-4">Select a repository to add an image.</p>
+                            <p className="text-sm text-muted-foreground text-center pt-4">Select a repository to upload an image.</p>
                         )}
                     </div>
                 </ScrollArea>

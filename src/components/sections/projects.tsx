@@ -53,14 +53,22 @@ export function Projects() {
 
   useEffect(() => {
     if (isClient) {
-      const storedUsername = localStorage.getItem("githubUsername");
-      if (storedUsername) setGithubUsername(JSON.parse(storedUsername));
+      try {
+        const storedUsername = localStorage.getItem("githubUsername");
+        if (storedUsername) setGithubUsername(JSON.parse(storedUsername));
 
-      const storedRepoIds = localStorage.getItem("selectedRepoIds");
-      if (storedRepoIds) setSelectedRepoIds(JSON.parse(storedRepoIds));
-      
-      const storedImages = localStorage.getItem("projectImages");
-      if (storedImages) setProjectImages(JSON.parse(storedImages));
+        const storedRepoIds = localStorage.getItem("selectedRepoIds");
+        if (storedRepoIds) setSelectedRepoIds(JSON.parse(storedRepoIds));
+        
+        const storedImages = localStorage.getItem("projectImages");
+        if (storedImages) setProjectImages(JSON.parse(storedImages));
+      } catch (error) {
+        console.error("Failed to parse from localStorage", error);
+        // Clear corrupted data
+        localStorage.removeItem("githubUsername");
+        localStorage.removeItem("selectedRepoIds");
+        localStorage.removeItem("projectImages");
+      }
     }
   }, [isClient]);
 
@@ -132,7 +140,7 @@ export function Projects() {
   return (
     <section id="projects" className="w-full py-12 md:py-24 lg:py-32 bg-secondary">
       <div className="container px-4 md:px-6">
-        <div className="flex flex-col items-center justify-center space-y-4 text-center">
+        <div className="flex flex-col items-center justify-center space-y-4 text-center relative">
           <div className="space-y-2">
             <Badge className="bg-accent text-accent-foreground">Projects</Badge>
             <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl font-headline">My Recent Work</h2>
@@ -161,27 +169,27 @@ export function Projects() {
           </div>
         ) : displayedProjects.length > 0 ? (
           <div className="mx-auto grid gap-8 py-12 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-            {displayedProjects.map((project) => (
-              <Card key={project.id} className="flex flex-col overflow-hidden transition-all duration-300 hover:shadow-2xl hover:-translate-y-2">
-                <CardHeader>
+            {displayedProjects.map((project, index) => (
+              <Card key={project.id} className="flex flex-col overflow-hidden transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 fade-in" style={{ animationDelay: `${index * 150}ms` }}>
+                <CardHeader className="p-0">
                   <Image
                     src={projectImages[project.id] || `https://placehold.co/600x400.png`}
                     alt={project.name}
                     width={600}
                     height={400}
-                    className="rounded-t-lg object-cover aspect-[3/2]"
+                    className="rounded-t-lg object-cover aspect-[3/2] w-full"
                     data-ai-hint="project screenshot"
                     onError={(e) => e.currentTarget.src = `https://placehold.co/600x400.png`}
                   />
-                  <CardTitle className="pt-4 font-headline">{project.name}</CardTitle>
+                </CardHeader>
+                 <CardContent className="flex-grow p-6">
+                  <CardTitle className="font-headline">{project.name}</CardTitle>
                   <div className="flex items-center pt-2">
                     {project.language && <Badge variant="secondary">{project.language}</Badge>}
                   </div>
-                </CardHeader>
-                <CardContent className="flex-grow">
-                  <CardDescription>{project.description || "No description available."}</CardDescription>
+                  <CardDescription className="pt-4">{project.description || "No description available."}</CardDescription>
                 </CardContent>
-                <CardFooter className="flex justify-between">
+                <CardFooter className="flex justify-start gap-4">
                   <Button asChild variant="outline" size="sm">
                     <Link href={project.html_url} target="_blank" rel="noopener noreferrer">
                       <Github className="mr-2 h-4 w-4" />

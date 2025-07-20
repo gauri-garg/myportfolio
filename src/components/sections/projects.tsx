@@ -40,7 +40,7 @@ export function Projects() {
   const { toast } = useToast();
   const [isClient, setIsClient] = useState(false);
   
-  const [githubUsername, setGithubUsername] = useState("gauri-garg");
+  const [githubUsername, setGithubUsername] = useState("");
   const [allRepos, setAllRepos] = useState<GitHubRepo[]>([]);
   const [selectedRepoIds, setSelectedRepoIds] = useState<number[]>([]);
   const [projectImages, setProjectImages] = useState<{ [key: number]: string }>({});
@@ -67,7 +67,8 @@ export function Projects() {
 
         const storedDescriptions = localStorage.getItem("projectDescriptions");
         if (storedDescriptions) setProjectDescriptions(JSON.parse(storedDescriptions));
-      } catch (error) {
+      } catch (error)
+ {
         console.error("Failed to parse from localStorage", error);
         // Clear corrupted data
         localStorage.removeItem("githubUsername");
@@ -103,15 +104,28 @@ export function Projects() {
   }, [projectDescriptions, isClient]);
   
   const fetchRepos = useCallback(async () => {
-    if (!githubUsername) return;
+    if (!githubUsername) {
+      setIsLoading(false);
+      return;
+    }
     setIsLoading(true);
     try {
-      const repos = await getGitHubRepos(githubUsername);
-      setAllRepos(repos);
+      const newRepos = await getGitHubRepos(githubUsername);
+      setAllRepos(newRepos);
+
+      // Auto-select new repos
+      const currentRepoIds = allRepos.map(repo => repo.id);
+      const fetchedRepoIds = newRepos.map(repo => repo.id);
+      const newRepoIds = fetchedRepoIds.filter(id => !currentRepoIds.includes(id));
+
+      if (newRepoIds.length > 0) {
+        setSelectedRepoIds(prevIds => [...new Set([...prevIds, ...newRepoIds])]);
+      }
+      
        // Sync descriptions for existing repos
        const newDescriptions: { [key: number]: string } = {};
-       repos.forEach(repo => {
-         if (repo.description) {
+       newRepos.forEach(repo => {
+         if (repo.description && !projectDescriptions[repo.id]) {
            newDescriptions[repo.id] = repo.description;
          }
        });
@@ -127,13 +141,14 @@ export function Projects() {
     } finally {
       setIsLoading(false);
     }
-  }, [githubUsername, toast]);
+  }, [githubUsername, toast, allRepos, projectDescriptions]);
 
   useEffect(() => {
     if (isClient) {
       fetchRepos();
     }
-  }, [fetchRepos, isClient]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isClient, githubUsername]);
   
   const displayedProjects = allRepos.filter(repo => selectedRepoIds.includes(repo.id));
   const defaultPlaceholder = "https://placehold.co/600x400/3F51B5/FFFFFF?text=GG&font=spacgrotesk";
@@ -187,7 +202,7 @@ export function Projects() {
           />
         </div>
         
-        {isLoading ? (
+        {isLoading && !allRepos.length ? (
           <div className="flex justify-center items-center py-12">
             <Loader2 className="h-12 w-12 animate-spin text-primary" />
           </div>
@@ -226,8 +241,17 @@ export function Projects() {
           </div>
         ) : (
           <div className="text-center py-12 text-muted-foreground">
-            <p>No projects selected.</p>
-            <p>Click the settings icon to add projects from GitHub.</p>
+            {githubUsername ? (
+              <>
+                <p>No projects selected.</p>
+                <p>Click the settings icon to add projects from GitHub.</p>
+              </>
+            ) : (
+              <>
+                <p>No GitHub username provided.</p>
+                <p>Click the settings icon to add your username and see your projects.</p>
+              </>
+            )}
           </div>
         )}
       </div>

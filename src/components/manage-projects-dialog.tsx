@@ -25,6 +25,8 @@ interface ManageProjectsDialogProps {
   allRepos: GitHubRepo[];
   selectedRepoIds: number[];
   setSelectedRepoIds: (ids: number[]) => void;
+  projectImages: { [key: number]: string };
+  setProjectImages: (images: { [key: number]: string }) => void;
   onRefresh: () => void;
   isFetchingRepos: boolean;
 }
@@ -37,6 +39,8 @@ export function ManageProjectsDialog({
   allRepos,
   selectedRepoIds,
   setSelectedRepoIds,
+  projectImages,
+  setProjectImages,
   onRefresh,
   isFetchingRepos,
 }: ManageProjectsDialogProps) {
@@ -48,6 +52,15 @@ export function ManageProjectsDialog({
     setSelectedRepoIds(newSelectedRepoIds);
   };
 
+  const handleImageChange = (repoId: number, imageUrl: string) => {
+    setProjectImages({
+      ...projectImages,
+      [repoId]: imageUrl,
+    });
+  };
+
+  const selectedRepos = allRepos.filter(repo => selectedRepoIds.includes(repo.id));
+
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
@@ -56,11 +69,11 @@ export function ManageProjectsDialog({
           <span className="sr-only">Manage Projects</span>
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px] md:max-w-[600px]">
+      <DialogContent className="sm:max-w-[425px] md:max-w-[700px]">
         <DialogHeader>
           <DialogTitle>Manage Projects</DialogTitle>
           <DialogDescription>
-            Select the repositories you want to display in your portfolio.
+            Select repositories to display and optionally add a custom image URL for each.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
@@ -74,7 +87,7 @@ export function ManageProjectsDialog({
                 value={githubUsername}
                 onChange={(e) => setGithubUsername(e.target.value)}
                 className="col-span-3"
-                placeholder="e.g., gaurigr"
+                placeholder="e.g., gauri-garg"
               />
               <Button onClick={onRefresh} disabled={isFetchingRepos} size="icon" variant="outline">
                 {isFetchingRepos ? (
@@ -86,36 +99,60 @@ export function ManageProjectsDialog({
               </Button>
             </div>
           </div>
-          <Label>Select Projects</Label>
-          <ScrollArea className="h-72 w-full rounded-md border">
-            <div className="p-4">
-              {isFetchingRepos ? (
-                 <div className="flex justify-center items-center h-full">
-                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                 </div>
-              ) : allRepos.length > 0 ? (
-                allRepos.map((repo) => (
-                  <div key={repo.id} className="flex items-center space-x-2 mb-2">
-                    <Checkbox
-                      id={`repo-${repo.id}`}
-                      checked={selectedRepoIds.includes(repo.id)}
-                      onCheckedChange={() => handleCheckboxChange(repo.id)}
-                    />
-                    <label
-                      htmlFor={`repo-${repo.id}`}
-                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                    >
-                      {repo.name}
-                    </label>
-                  </div>
-                ))
-              ) : (
-                <p className="text-sm text-muted-foreground text-center">
-                    No repositories found for this user, or there was an error.
-                </p>
-              )}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label>Select Repositories</Label>
+              <ScrollArea className="h-72 w-full rounded-md border mt-2">
+                <div className="p-4">
+                  {isFetchingRepos ? (
+                     <div className="flex justify-center items-center h-full">
+                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                     </div>
+                  ) : allRepos.length > 0 ? (
+                    allRepos.map((repo) => (
+                      <div key={repo.id} className="flex items-center space-x-2 mb-2">
+                        <Checkbox
+                          id={`repo-${repo.id}`}
+                          checked={selectedRepoIds.includes(repo.id)}
+                          onCheckedChange={() => handleCheckboxChange(repo.id)}
+                        />
+                        <label
+                          htmlFor={`repo-${repo.id}`}
+                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                        >
+                          {repo.name}
+                        </label>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-sm text-muted-foreground text-center">
+                        No repositories found for this user.
+                    </p>
+                  )}
+                </div>
+              </ScrollArea>
             </div>
-          </ScrollArea>
+            <div>
+                <Label>Project Image URLs (Optional)</Label>
+                <ScrollArea className="h-72 w-full rounded-md border mt-2">
+                    <div className="p-4 space-y-4">
+                        {selectedRepos.length > 0 ? selectedRepos.map(repo => (
+                            <div key={`img-${repo.id}`} className="space-y-1">
+                                <Label htmlFor={`img-url-${repo.id}`} className="text-sm font-medium">{repo.name}</Label>
+                                <Input 
+                                    id={`img-url-${repo.id}`}
+                                    placeholder="https://example.com/image.png"
+                                    value={projectImages[repo.id] || ''}
+                                    onChange={(e) => handleImageChange(repo.id, e.target.value)}
+                                />
+                            </div>
+                        )) : (
+                            <p className="text-sm text-muted-foreground text-center pt-4">Select a repository to add an image.</p>
+                        )}
+                    </div>
+                </ScrollArea>
+            </div>
+          </div>
         </div>
         <DialogFooter>
           <Button onClick={() => setIsOpen(false)}>Done</Button>

@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
@@ -41,42 +40,47 @@ export function Projects() {
   const [isClient, setIsClient] = useState(false);
   
   const [githubUsername, setGithubUsername] = useState("gauri-garg");
+  const [allRepos, setAllRepos] = useState<GitHubRepo[]>([]);
   const [selectedRepoIds, setSelectedRepoIds] = useState<number[]>([]);
+  const [projectImages, setProjectImages] = useState<{ [key: number]: string }>({});
   
   const [isLoading, setIsLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [allRepos, setAllRepos] = useState<GitHubRepo[]>([]);
 
-  // On initial client-side mount, load data from localStorage
   useEffect(() => {
     setIsClient(true);
-    const storedUsername = localStorage.getItem("githubUsername");
-    if (storedUsername) {
-      setGithubUsername(JSON.parse(storedUsername));
-    }
-    const storedRepoIds = localStorage.getItem("selectedRepoIds");
-    if (storedRepoIds) {
-      try {
-        setSelectedRepoIds(JSON.parse(storedRepoIds));
-      } catch {
-        setSelectedRepoIds([]);
-      }
-    }
   }, []);
 
-  // Persist githubUsername to localStorage whenever it changes
+  useEffect(() => {
+    if (isClient) {
+      const storedUsername = localStorage.getItem("githubUsername");
+      if (storedUsername) setGithubUsername(JSON.parse(storedUsername));
+
+      const storedRepoIds = localStorage.getItem("selectedRepoIds");
+      if (storedRepoIds) setSelectedRepoIds(JSON.parse(storedRepoIds));
+      
+      const storedImages = localStorage.getItem("projectImages");
+      if (storedImages) setProjectImages(JSON.parse(storedImages));
+    }
+  }, [isClient]);
+
   useEffect(() => {
     if (isClient) {
       localStorage.setItem("githubUsername", JSON.stringify(githubUsername));
     }
   }, [githubUsername, isClient]);
 
-  // Persist selectedRepoIds to localStorage whenever they change
   useEffect(() => {
     if (isClient) {
       localStorage.setItem("selectedRepoIds", JSON.stringify(selectedRepoIds));
     }
   }, [selectedRepoIds, isClient]);
+
+  useEffect(() => {
+    if (isClient) {
+      localStorage.setItem("projectImages", JSON.stringify(projectImages));
+    }
+  }, [projectImages, isClient]);
   
   const fetchRepos = useCallback(async () => {
     if (!githubUsername) return;
@@ -144,6 +148,8 @@ export function Projects() {
             allRepos={allRepos}
             selectedRepoIds={selectedRepoIds}
             setSelectedRepoIds={setSelectedRepoIds}
+            projectImages={projectImages}
+            setProjectImages={setProjectImages}
             onRefresh={fetchRepos}
             isFetchingRepos={isLoading}
           />
@@ -159,12 +165,13 @@ export function Projects() {
               <Card key={project.id} className="flex flex-col overflow-hidden transition-all duration-300 hover:shadow-2xl hover:-translate-y-2">
                 <CardHeader>
                   <Image
-                    src={`https://placehold.co/600x400.png`}
+                    src={projectImages[project.id] || `https://placehold.co/600x400.png`}
                     alt={project.name}
                     width={600}
                     height={400}
-                    className="rounded-t-lg object-cover"
+                    className="rounded-t-lg object-cover aspect-[3/2]"
                     data-ai-hint="project screenshot"
+                    onError={(e) => e.currentTarget.src = `https://placehold.co/600x400.png`}
                   />
                   <CardTitle className="pt-4 font-headline">{project.name}</CardTitle>
                   <div className="flex items-center pt-2">
@@ -203,4 +210,3 @@ export function Projects() {
     </section>
   );
 }
-    

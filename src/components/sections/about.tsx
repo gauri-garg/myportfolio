@@ -4,22 +4,22 @@ import { Briefcase } from "lucide-react";
 
 const experienceData = [
   {
-    role: "Frontend Developer",
-    company: "Tech Solutions Inc.",
+    role: "Creative Developer",
+    company: "Freelance",
     duration: "2021 - Present",
-    description: "Developing and enhancing a large-scale e-commerce platform using React, Next.js, and TypeScript. Focused on improving code quality and performance.",
+    description: "Building beautiful and functional web experiences for a variety of clients. Specializing in React, Next.js, and crafting engaging user interfaces.",
   },
   {
-    role: "Full-Stack Developer",
+    role: "Web Developer",
     company: "Innovate Co.",
     duration: "2019 - 2021",
-    description: "Developed and maintained web applications for various clients. Worked with a modern stack including Node.js, Express, and Vue.js. Implemented RESTful APIs and integrated with third-party services.",
+    description: "Developed and maintained web applications, working across the full stack with technologies like Node.js and Vue.js. Contributed to API design and third-party service integrations.",
   },
   {
-    role: "Web Developer Intern",
+    role: "Web Development Intern",
     company: "Startup Hub",
     duration: "2018 - 2019",
-    description: "Gained hands-on experience in web development, contributing to a project from conception to deployment. Worked with HTML, CSS, JavaScript, and PHP.",
+    description: "Gained foundational experience in web development, contributing to projects from conception to deployment using HTML, CSS, JavaScript, and PHP.",
   },
 ];
 

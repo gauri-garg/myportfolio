@@ -142,7 +142,7 @@ export function Projects() {
     <section id="projects" className="w-full py-12 md:py-24 lg:py-32 bg-secondary">
       <div className="container px-4 md:px-6">
         <div className="flex flex-col items-center justify-center space-y-4 text-center relative">
-          <div className="space-y-2">
+          <div className="space-y-2 fade-in">
             <Badge className="bg-accent text-accent-foreground">Projects</Badge>
             <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl font-headline">My Recent Work</h2>
             <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
@@ -171,16 +171,16 @@ export function Projects() {
         ) : displayedProjects.length > 0 ? (
           <div className="mx-auto grid gap-8 py-12 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
             {displayedProjects.map((project, index) => (
-              <Card key={project.id} className="flex flex-col overflow-hidden transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 fade-in" style={{ animationDelay: `${index * 150}ms` }}>
+              <Card key={project.id} className="flex flex-col overflow-hidden transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 fade-in shine" style={{ animationDelay: `${index * 150}ms` }}>
                 <CardHeader className="p-0">
                   <Image
-                    src={projectImages[project.id] || "https://placehold.co/600x400/6633cc/FFFFFF?text=GG"}
+                    src={projectImages[project.id] || "https://placehold.co/600x400.png"}
                     alt={project.name}
                     width={600}
                     height={400}
                     className="rounded-t-lg object-cover aspect-[3/2] w-full"
                     data-ai-hint="project screenshot"
-                    onError={(e) => e.currentTarget.src = "https://placehold.co/600x400/6633cc/FFFFFF?text=GG"}
+                    onError={(e) => e.currentTarget.src = "https://placehold.co/600x400.png"}
                   />
                 </CardHeader>
                  <CardContent className="flex-grow p-6">

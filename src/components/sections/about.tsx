@@ -22,7 +22,7 @@ export function About() {
     <section id="about" className="w-full py-12 md:py-24 lg:py-32 bg-secondary">
       <div className="container px-4 md:px-6">
         <div className="flex flex-col items-center justify-center space-y-4 text-center">
-          <div className="space-y-2">
+          <div className="space-y-2 fade-in">
             <Badge className="bg-primary text-primary-foreground">Experience</Badge>
             <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl font-headline">My Professional Journey</h2>
             <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
@@ -32,9 +32,9 @@ export function About() {
         </div>
         <div className="mx-auto grid max-w-5xl items-start gap-8 py-12 lg:grid-cols-1">
           {experienceData.map((exp, index) => (
-            <Card key={index} className="transition-all duration-300 hover:shadow-lg hover:-translate-y-1 fade-in" style={{ animationDelay: `${index * 150}ms` }}>
+            <Card key={index} className="transition-all duration-300 hover:shadow-lg hover:-translate-y-1 fade-in shine" style={{ animationDelay: `${index * 150}ms` }}>
               <CardHeader className="grid grid-cols-[auto_1fr_auto] items-start gap-4 space-y-0">
-                <div className="bg-primary text-primary-foreground p-3 rounded-full">
+                <div className="bg-primary/10 text-primary p-3 rounded-full">
                   <Briefcase className="h-6 w-6" />
                 </div>
                 <div className="text-left">

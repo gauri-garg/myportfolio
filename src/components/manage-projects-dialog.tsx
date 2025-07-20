@@ -17,10 +17,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Settings, RefreshCw, Loader2, Trash2, Wand2 } from "lucide-react";
+import { Settings, RefreshCw, Loader2, Trash2 } from "lucide-react";
 import type { GitHubRepo } from "./sections/projects";
 import Image from "next/image";
-import { generateProjectDescription } from "@/ai/flows/generate-project-description";
 import { useToast } from "@/hooks/use-toast";
 
 interface ManageProjectsDialogProps {
@@ -56,7 +55,6 @@ export function ManageProjectsDialog({
 }: ManageProjectsDialogProps) {
   
   const { toast } = useToast();
-  const [generatingStates, setGeneratingStates] = useState<{[key: number]: boolean}>({});
 
   const handleCheckboxChange = (repoId: number) => {
     const newSelectedRepoIds = selectedRepoIds.includes(repoId)
@@ -91,33 +89,6 @@ export function ManageProjectsDialog({
       [repoId]: value,
     });
   };
-
-  const handleGenerateDescription = async (repo: GitHubRepo) => {
-    setGeneratingStates(prev => ({...prev, [repo.id]: true}));
-    try {
-      const result = await generateProjectDescription({
-        projectName: repo.name,
-        language: repo.language
-      });
-      if (result.description) {
-        handleDescriptionChange(repo.id, result.description);
-        toast({
-            title: "Description Generated!",
-            description: `A new description for "${repo.name}" has been created.`,
-        });
-      }
-    } catch (error) {
-      console.error("Error generating description", error);
-      toast({
-          variant: "destructive",
-          title: "Generation Failed",
-          description: "Could not generate a description for this project.",
-      });
-    } finally {
-      setGeneratingStates(prev => ({...prev, [repo.id]: false}));
-    }
-  };
-
 
   const selectedRepos = allRepos.filter(repo => selectedRepoIds.includes(repo.id));
 
@@ -201,19 +172,7 @@ export function ManageProjectsDialog({
                                 <Label htmlFor={`desc-${repo.id}`} className="text-base font-semibold">{repo.name}</Label>
                                 
                                 <div className="space-y-1">
-                                    <div className="flex justify-between items-center">
-                                      <Label htmlFor={`desc-${repo.id}`} className="text-xs font-medium text-muted-foreground">Description</Label>
-                                      <Button 
-                                          size="sm" 
-                                          variant="ghost" 
-                                          className="text-xs h-7"
-                                          onClick={() => handleGenerateDescription(repo)}
-                                          disabled={generatingStates[repo.id]}
-                                      >
-                                          {generatingStates[repo.id] ? <Loader2 className="w-3 h-3 mr-1.5 animate-spin" /> : <Wand2 className="w-3 h-3 mr-1.5" />}
-                                          Generate with AI
-                                      </Button>
-                                    </div>
+                                    <Label htmlFor={`desc-${repo.id}`} className="text-xs font-medium text-muted-foreground">Description</Label>
                                     <Textarea
                                       id={`desc-${repo.id}`}
                                       value={projectDescriptions[repo.id] || repo.description || ""}

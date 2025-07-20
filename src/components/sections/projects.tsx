@@ -5,12 +5,11 @@ import { useState, useEffect, useCallback } from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Github, ExternalLink, Settings, Loader2 } from "lucide-react";
+import { Github, Settings, Loader2 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { ManageProjectsDialog } from "@/components/manage-projects-dialog";
 import { useToast } from "@/hooks/use-toast";
-import type { GenerateProjectDescriptionOutput } from "@/ai/flows/generate-project-description";
 
 export type GitHubRepo = {
   id: number;
@@ -137,7 +136,7 @@ export function Projects() {
   }, [fetchRepos, isClient]);
   
   const displayedProjects = allRepos.filter(repo => selectedRepoIds.includes(repo.id));
-  const defaultPlaceholder = "https://placehold.co/600x400/1E88E5/FFFFFF?text=GG&font=spacgrotesk";
+  const defaultPlaceholder = "https://placehold.co/600x400/3F51B5/FFFFFF?text=GG&font=spacgrotesk";
 
   if (!isClient) {
     return (
@@ -221,14 +220,6 @@ export function Projects() {
                       GitHub
                     </Link>
                   </Button>
-                  {project.homepage && (
-                    <Button asChild variant="default" size="sm" className="bg-primary hover:bg-primary/90">
-                      <Link href={project.homepage} target="_blank" rel="noopener noreferrer">
-                        <ExternalLink className="mr-2 h-4 w-4" />
-                        Live Demo
-                      </Link>
-                    </Button>
-                  )}
                 </CardFooter>
               </Card>
             ))}

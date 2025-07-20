@@ -7,7 +7,7 @@ export function Landing() {
   return (
     <section
       id="home"
-      className="container flex flex-col md:flex-row items-center justify-center gap-12 px-4 md:px-6 py-24 md:py-32 relative aurora"
+      className="container flex flex-col md:flex-row items-center justify-center gap-16 px-4 md:px-6 py-24 md:py-32 relative aurora"
     >
       <div className="flex-1 text-center md:text-left">
         <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl lg:text-7xl font-headline text-primary-foreground fade-in">
@@ -28,7 +28,7 @@ export function Landing() {
           </Button>
         </div>
       </div>
-      <div className="flex-1 flex justify-center md:justify-end fade-in-delay-3">
+      <div className="flex-1 flex justify-center md:justify-center fade-in-delay-3">
         <AiAvatarGenerator />
       </div>
     </section>

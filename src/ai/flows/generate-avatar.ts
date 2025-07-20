@@ -40,20 +40,20 @@ const generateAvatarFlow = ai.defineFlow(
   },
   async ({description, photoDataUri}) => {
     
-    const prompt: (string | {media: {url: string}})[] = [
+    const promptParts: (string | {media: {url: string}})[] = [
       {text: `Generate a profile picture based on the following description: ${description}.`},
     ];
 
     if (photoDataUri) {
-      prompt.push({text: "Use the following image as a reference for the person's face."});
-      prompt.push({media: {url: photoDataUri}});
+        promptParts.push({text: "Use the following image as a reference for the person's face. Create a new avatar in the described style, but ensure the facial features resemble the reference photo."});
+        promptParts.push({media: {url: photoDataUri}});
     }
 
     const {media} = await ai.generate({
       // IMPORTANT: ONLY the googleai/gemini-2.0-flash-preview-image-generation model is able to generate images. You MUST use exactly this model to generate images.
       model: 'googleai/gemini-2.0-flash-preview-image-generation',
 
-      prompt: prompt,
+      prompt: promptParts,
       config: {
         responseModalities: ['TEXT', 'IMAGE'], // MUST provide both TEXT and IMAGE, IMAGE only won't work
         safetySettings: [

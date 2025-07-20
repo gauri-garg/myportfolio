@@ -18,7 +18,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2, Upload, Wand2 } from "lucide-react";
+import { Loader2, Upload, Wand2, Image as ImageIcon } from "lucide-react";
 
 export function AiAvatarGenerator() {
   const { toast } = useToast();
@@ -28,6 +28,7 @@ export function AiAvatarGenerator() {
   const [isLoading, setIsLoading] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const uploadInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -35,6 +36,22 @@ export function AiAvatarGenerator() {
       const reader = new FileReader();
       reader.onloadend = () => {
         setPhotoDataUri(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleUploadAvatar = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const newAvatarUrl = reader.result as string;
+        setAvatarUrl(newAvatarUrl);
+        toast({
+          title: "Success!",
+          description: "Your avatar has been updated.",
+        });
       };
       reader.readAsDataURL(file);
     }
@@ -87,60 +104,77 @@ export function AiAvatarGenerator() {
         <AvatarImage src={avatarUrl} alt="Developer Avatar" data-ai-hint="person" />
         <AvatarFallback>GG</AvatarFallback>
       </Avatar>
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogTrigger asChild>
-          <Button
+       <div className="flex gap-2">
+        <Button
             size="sm"
-            className="bg-primary hover:bg-primary/90 text-primary-foreground"
+            variant="outline"
+            onClick={() => uploadInputRef.current?.click()}
           >
-            <Wand2 className="w-4 h-4 mr-2" />
-            Generate Avatar
+            <Upload className="w-4 h-4 mr-2" />
+            Upload Avatar
           </Button>
-        </DialogTrigger>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Generate AI Avatar</DialogTitle>
-            <DialogDescription>
-              Describe your desired avatar. You can also upload a photo to use as a reference.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid w-full max-w-sm items-center gap-1.5">
-              <Label htmlFor="picture">Reference Picture (Optional)</Label>
-              <div className="flex items-center gap-2">
-                 <Input id="picture" type="file" accept="image/*" onChange={handleFileChange} ref={fileInputRef} className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90" />
-                 {photoDataUri && <Avatar><AvatarImage src={photoDataUri} /></Avatar>}
+          <input
+            type="file"
+            accept="image/*"
+            ref={uploadInputRef}
+            onChange={handleUploadAvatar}
+            className="hidden"
+          />
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogTrigger asChild>
+            <Button
+              size="sm"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground"
+            >
+              <Wand2 className="w-4 h-4 mr-2" />
+              Generate with AI
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>Generate AI Avatar</DialogTitle>
+              <DialogDescription>
+                Describe your desired avatar. You can also upload a photo to use as a reference.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid w-full max-w-sm items-center gap-1.5">
+                <Label htmlFor="picture">Reference Picture (Optional)</Label>
+                <div className="flex items-center gap-2">
+                   <Input id="picture" type="file" accept="image/*" onChange={handleFileChange} ref={fileInputRef} className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90" />
+                   {photoDataUri && <Avatar><AvatarImage src={photoDataUri} /></Avatar>}
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="description">Description</Label>
+                <Textarea
+                  id="description"
+                  placeholder="e.g., A pixel art cat wearing sunglasses, in a vibrant synthwave style"
+                  className="col-span-3"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  rows={4}
+                />
               </div>
             </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="description">Description</Label>
-              <Textarea
-                id="description"
-                placeholder="e.g., A pixel art cat wearing sunglasses, in a vibrant synthwave style"
-                className="col-span-3"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                rows={4}
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button
-              type="submit"
-              onClick={handleGenerate}
-              disabled={isLoading}
-              className="bg-primary hover:bg-primary/90"
-            >
-              {isLoading ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <Wand2 className="mr-2 h-4 w-4" />
-              )}
-              Generate
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+            <DialogFooter>
+              <Button
+                type="submit"
+                onClick={handleGenerate}
+                disabled={isLoading}
+                className="bg-primary hover:bg-primary/90"
+              >
+                {isLoading ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Wand2 className="mr-2 h-4 w-4" />
+                )}
+                Generate
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
     </div>
   );
 }

@@ -15,7 +15,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Send } from "lucide-react";
+import { Send, Loader2 } from "lucide-react";
+import { sendContactMessage } from "@/app/actions";
+import { useState, useTransition } from "react";
 
 const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters."),
@@ -25,6 +27,10 @@ const formSchema = z.object({
 
 export function ContactForm() {
   const { toast } = useToast();
+  const [isPending, startTransition] = useTransition();
+  const [error, setError] = useState<string | undefined>("");
+  const [success, setSuccess] = useState<string | undefined>("");
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -35,26 +41,38 @@ export function ContactForm() {
   });
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    const to_email = "garg.gauri.1020@gmail.com";
-    const subject = `New message from ${values.name} via Portfolio`;
-    const body = `Name: ${values.name}\nEmail: ${values.email}\n\nMessage:\n${values.message}`;
-    
-    const mailtoLink = `mailto:${to_email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    setError("");
+    setSuccess("");
 
-    try {
-      window.location.href = mailtoLink;
-      toast({
-        title: "Email client opened",
-        description: "Please complete sending the message in your email application.",
-      });
-      form.reset();
-    } catch (error) {
-       toast({
-        variant: "destructive",
-        title: "Uh oh! Something went wrong.",
-        description: "Could not open your email client. Please try again or send an email manually.",
-      });
-    }
+    startTransition(() => {
+      sendContactMessage(values)
+        .then((data) => {
+          if (data.error) {
+            setError(data.error);
+             toast({
+              variant: "destructive",
+              title: "Uh oh! Something went wrong.",
+              description: data.error,
+            });
+          }
+          if (data.success) {
+            setSuccess(data.success);
+            toast({
+              title: "Message Sent!",
+              description: "Thank you for reaching out. I'll get back to you soon.",
+            });
+            form.reset();
+          }
+        })
+        .catch(() => {
+          setError("Something went wrong!");
+          toast({
+            variant: "destructive",
+            title: "Uh oh! Something went wrong.",
+            description: "There was a problem sending your message. Please try again.",
+          });
+        });
+    });
   }
 
   return (
@@ -99,8 +117,8 @@ export function ContactForm() {
             </FormItem>
           )}
         />
-        <Button type="submit" className="w-full bg-accent hover:bg-accent/90 text-accent-foreground" disabled={form.formState.isSubmitting}>
-           <Send className="mr-2 h-4 w-4" />
+        <Button type="submit" className="w-full bg-accent hover:bg-accent/90 text-accent-foreground" disabled={isPending}>
+           {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
           Send Message
         </Button>
       </form>

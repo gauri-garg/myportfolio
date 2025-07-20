@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { generateAvatar, type GenerateAvatarInput } from "@/ai/flows/generate-avatar";
 import { useToast } from "@/hooks/use-toast";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -14,15 +14,30 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2, Wand2 } from "lucide-react";
+import { Loader2, Upload, Wand2 } from "lucide-react";
 
 export function AiAvatarGenerator() {
   const { toast } = useToast();
   const [avatarUrl, setAvatarUrl] = useState<string>("https://placehold.co/128x128.png");
-  const [description, setDescription] = useState<GenerateAvatarInput>("");
+  const [description, setDescription] = useState<string>("");
+  const [photoDataUri, setPhotoDataUri] = useState<string | undefined>();
   const [isLoading, setIsLoading] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPhotoDataUri(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleGenerate = async () => {
     if (!description.trim()) {
@@ -35,7 +50,8 @@ export function AiAvatarGenerator() {
     }
     setIsLoading(true);
     try {
-      const result = await generateAvatar(description);
+      const input: GenerateAvatarInput = { description, photoDataUri };
+      const result = await generateAvatar(input);
       if (result?.avatarDataUri) {
         setAvatarUrl(result.avatarDataUri);
         toast({
@@ -43,6 +59,12 @@ export function AiAvatarGenerator() {
           description: "Your new avatar has been generated.",
         });
         setIsDialogOpen(false);
+        // Reset state
+        setDescription("");
+        setPhotoDataUri(undefined);
+        if(fileInputRef.current) {
+          fileInputRef.current.value = "";
+        }
       } else {
         throw new Error("Failed to generate avatar.");
       }
@@ -59,16 +81,16 @@ export function AiAvatarGenerator() {
   };
 
   return (
-    <div className="relative group">
-      <Avatar className="w-32 h-32 border-4 border-background shadow-lg">
-        <AvatarImage src={avatarUrl} alt="Developer Avatar" />
-        <AvatarFallback>DA</AvatarFallback>
+    <div className="relative group transition-transform duration-300 hover:scale-105">
+      <Avatar className="w-32 h-32 border-4 border-background shadow-lg transition-all duration-300 group-hover:shadow-2xl">
+        <AvatarImage src={avatarUrl} alt="Developer Avatar" data-ai-hint="person" />
+        <AvatarFallback>GG</AvatarFallback>
       </Avatar>
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogTrigger asChild>
           <Button
             size="sm"
-            className="absolute -bottom-2 -right-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-accent hover:bg-accent/90 text-accent-foreground"
+            className="absolute -bottom-2 -right-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-primary hover:bg-primary/90 text-primary-foreground"
           >
             <Wand2 className="w-4 h-4" />
           </Button>
@@ -77,10 +99,17 @@ export function AiAvatarGenerator() {
           <DialogHeader>
             <DialogTitle>Generate AI Avatar</DialogTitle>
             <DialogDescription>
-              Describe your desired avatar. Be as creative as you like!
+              Describe your desired avatar. You can also upload a photo to use as a reference.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
+            <div className="grid w-full max-w-sm items-center gap-1.5">
+              <Label htmlFor="picture">Reference Picture (Optional)</Label>
+              <div className="flex items-center gap-2">
+                 <Input id="picture" type="file" accept="image/*" onChange={handleFileChange} ref={fileInputRef} />
+                 {photoDataUri && <Avatar><AvatarImage src={photoDataUri} /></Avatar>}
+              </div>
+            </div>
             <Textarea
               id="description"
               placeholder="e.g., A pixel art cat wearing sunglasses, in a vibrant synthwave style"

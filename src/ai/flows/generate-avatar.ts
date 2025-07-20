@@ -1,7 +1,7 @@
 'use server';
 
 /**
- * @fileOverview Generates an AI avatar from a text description.
+ * @fileOverview Generates an AI avatar from a text description and an optional reference image.
  *
  * - generateAvatar - A function that generates an AI avatar.
  * - GenerateAvatarInput - The input type for the generateAvatar function.
@@ -11,7 +11,12 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
-const GenerateAvatarInputSchema = z.string().describe('A text description of the desired avatar.');
+const GenerateAvatarInputSchema = z.object({
+  description: z.string().describe('A text description of the desired avatar.'),
+  photoDataUri: z.string().optional().describe(
+    "An optional reference photo of a person, as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'."
+  ),
+});
 export type GenerateAvatarInput = z.infer<typeof GenerateAvatarInputSchema>;
 
 const GenerateAvatarOutputSchema = z.object({
@@ -23,36 +28,9 @@ const GenerateAvatarOutputSchema = z.object({
 });
 export type GenerateAvatarOutput = z.infer<typeof GenerateAvatarOutputSchema>;
 
-export async function generateAvatar(description: GenerateAvatarInput): Promise<GenerateAvatarOutput> {
-  return generateAvatarFlow(description);
+export async function generateAvatar(input: GenerateAvatarInput): Promise<GenerateAvatarOutput> {
+  return generateAvatarFlow(input);
 }
-
-const generateAvatarPrompt = ai.definePrompt({
-  name: 'generateAvatarPrompt',
-  input: {schema: GenerateAvatarInputSchema},
-  output: {schema: GenerateAvatarOutputSchema},
-  prompt: `Generate a profile picture based on the following description: {{{description}}}. Return the image as a data URI.`,
-  config: {
-    safetySettings: [
-      {
-        category: 'HARM_CATEGORY_HATE_SPEECH',
-        threshold: 'BLOCK_ONLY_HIGH',
-      },
-      {
-        category: 'HARM_CATEGORY_DANGEROUS_CONTENT',
-        threshold: 'BLOCK_NONE',
-      },
-      {
-        category: 'HARM_CATEGORY_HARASSMENT',
-        threshold: 'BLOCK_MEDIUM_AND_ABOVE',
-      },
-      {
-        category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
-        threshold: 'BLOCK_LOW_AND_ABOVE',
-      },
-    ],
-  },
-});
 
 const generateAvatarFlow = ai.defineFlow(
   {
@@ -60,14 +38,30 @@ const generateAvatarFlow = ai.defineFlow(
     inputSchema: GenerateAvatarInputSchema,
     outputSchema: GenerateAvatarOutputSchema,
   },
-  async description => {
+  async ({description, photoDataUri}) => {
+    
+    const prompt: (string | {media: {url: string}})[] = [
+      {text: `Generate a profile picture based on the following description: ${description}.`},
+    ];
+
+    if (photoDataUri) {
+      prompt.push({text: "Use the following image as a reference for the person's face."});
+      prompt.push({media: {url: photoDataUri}});
+    }
+
     const {media} = await ai.generate({
       // IMPORTANT: ONLY the googleai/gemini-2.0-flash-preview-image-generation model is able to generate images. You MUST use exactly this model to generate images.
       model: 'googleai/gemini-2.0-flash-preview-image-generation',
 
-      prompt: description,
+      prompt: prompt,
       config: {
         responseModalities: ['TEXT', 'IMAGE'], // MUST provide both TEXT and IMAGE, IMAGE only won't work
+        safetySettings: [
+            { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_ONLY_HIGH' },
+            { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_NONE' },
+            { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
+            { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_LOW_AND_ABOVE' },
+        ],
       },
     });
 

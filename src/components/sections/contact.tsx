@@ -1,13 +1,12 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ContactForm } from "@/components/contact-form";
-import { Github, Linkedin, Instagram } from "lucide-react";
+import { Github, Linkedin } from "lucide-react";
 import Link from "next/link";
 
 const socialLinks = [
   { name: "GitHub", icon: Github, url: "https://github.com" },
-  { name: "LinkedIn", icon: Linkedin, url: "https://linkedin.com" },
-  { name: "Instagram", icon: Instagram, url: "https://www.instagram.com/gaurig_arg?igsh=N283MzR3bnl6Ymlk" },
+  { name: "LinkedIn", icon: Linkedin, url: "https://www.linkedin.com/in/gauri-garg-582011290" },
 ];
 
 export function Contact() {

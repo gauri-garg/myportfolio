@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
@@ -23,12 +24,7 @@ export type GitHubRepo = {
 async function getGitHubRepos(username: string): Promise<GitHubRepo[]> {
     if (!username) return [];
     try {
-      // Use a proxy or server action in a real app to avoid CORS and hiding API keys
       const res = await fetch(`https://api.github.com/users/${username}/repos?sort=updated&per_page=50`, {
-        // Optional: Add GitHub token for higher rate limits
-        // headers: {
-        //   'Authorization': `token YOUR_GITHUB_TOKEN`
-        // },
         next: { revalidate: 3600 } // Revalidate every hour
       });
       if (!res.ok) {
@@ -37,25 +33,52 @@ async function getGitHubRepos(username: string): Promise<GitHubRepo[]> {
       return await res.json();
     } catch (error) {
       console.error("Error fetching projects:", error);
-      // Return empty array or handle error as needed
       return [];
     }
 }
 
 export function Projects() {
   const { toast } = useToast();
+  const [isClient, setIsClient] = useState(false);
+  
+  // Use local state first
+  const [githubUsernameState, setGithubUsernameState] = useState("gaurigr");
+  const [selectedRepoIdsState, setSelectedRepoIdsState] = useState<number[]>([]);
+
+  // Use useLocalStorage hook conditionally
   const [githubUsername, setGithubUsername] = useLocalStorage("githubUsername", "gaurigr");
-  const [allRepos, setAllRepos] = useState<GitHubRepo[]>([]);
-  const [selectedRepoIds, setSelectedRepoIds] = useLocalStorage("selectedRepoIds", "[]");
+  const [storedSelectedRepoIds, setStoredSelectedRepoIds] = useLocalStorage("selectedRepoIds", "[]");
+  
   const [isLoading, setIsLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [allRepos, setAllRepos] = useState<GitHubRepo[]>([]);
 
-  const selectedRepos = JSON.parse(selectedRepoIds) as number[];
+  useEffect(() => {
+    setIsClient(true);
+    // Sync from localStorage on mount
+    setGithubUsernameState(githubUsername);
+    try {
+      setSelectedRepoIdsState(JSON.parse(storedSelectedRepoIds));
+    } catch {
+      setSelectedRepoIdsState([]);
+    }
+  }, []);
 
+  const handleSetGithubUsername = (username: string) => {
+    setGithubUsernameState(username);
+    setGithubUsername(username);
+  };
+
+  const handleSetSelectedRepoIds = (ids: number[]) => {
+    setSelectedRepoIdsState(ids);
+    setStoredSelectedRepoIds(JSON.stringify(ids));
+  };
+  
   const fetchRepos = useCallback(async () => {
+    if (!githubUsernameState) return;
     setIsLoading(true);
     try {
-      const repos = await getGitHubRepos(githubUsername);
+      const repos = await getGitHubRepos(githubUsernameState);
       setAllRepos(repos);
     } catch (error) {
       toast({
@@ -67,13 +90,36 @@ export function Projects() {
     } finally {
       setIsLoading(false);
     }
-  }, [githubUsername, toast]);
+  }, [githubUsernameState, toast]);
 
   useEffect(() => {
-    fetchRepos();
-  }, [fetchRepos]);
+    if (isClient) {
+      fetchRepos();
+    }
+  }, [fetchRepos, isClient]);
+  
+  const displayedProjects = allRepos.filter(repo => selectedRepoIdsState.includes(repo.id));
 
-  const displayedProjects = allRepos.filter(repo => selectedRepos.includes(repo.id));
+  if (!isClient) {
+    return (
+      <section id="projects" className="w-full py-12 md:py-24 lg:py-32 bg-secondary">
+        <div className="container px-4 md:px-6">
+          <div className="flex flex-col items-center justify-center space-y-4 text-center">
+            <div className="space-y-2">
+              <Badge className="bg-accent text-accent-foreground">Projects</Badge>
+              <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl font-headline">My Recent Work</h2>
+              <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
+                Here are some of the projects I've chosen to feature from my GitHub profile.
+              </p>
+            </div>
+          </div>
+          <div className="flex justify-center items-center py-12">
+            <Loader2 className="h-12 w-12 animate-spin text-primary" />
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section id="projects" className="w-full py-12 md:py-24 lg:py-32 bg-secondary">
@@ -89,11 +135,11 @@ export function Projects() {
           <ManageProjectsDialog
             isOpen={isDialogOpen}
             setIsOpen={setIsDialogOpen}
-            githubUsername={githubUsername}
-            setGithubUsername={setGithubUsername}
+            githubUsername={githubUsernameState}
+            setGithubUsername={handleSetGithubUsername}
             allRepos={allRepos}
-            selectedRepoIds={selectedRepos}
-            setSelectedRepoIds={(ids) => setSelectedRepoIds(JSON.stringify(ids))}
+            selectedRepoIds={selectedRepoIdsState}
+            setSelectedRepoIds={handleSetSelectedRepoIds}
             onRefresh={fetchRepos}
             isFetchingRepos={isLoading}
           />
@@ -153,3 +199,5 @@ export function Projects() {
     </section>
   );
 }
+
+    

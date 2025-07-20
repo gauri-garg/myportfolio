@@ -4,12 +4,6 @@ import { Briefcase } from "lucide-react";
 
 const experienceData = [
   {
-    role: "Creative Developer",
-    company: "Freelance",
-    duration: "2021 - Present",
-    description: "Building beautiful and functional web experiences for a variety of clients. Specializing in React, Next.js, and crafting engaging user interfaces.",
-  },
-  {
     role: "Web Developer",
     company: "Innovate Co.",
     duration: "2019 - 2021",

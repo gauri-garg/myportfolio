@@ -10,6 +10,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { ManageProjectsDialog } from "@/components/manage-projects-dialog";
 import { useToast } from "@/hooks/use-toast";
+import type { GenerateProjectDescriptionOutput } from "@/ai/flows/generate-project-description";
 
 export type GitHubRepo = {
   id: number;
@@ -44,6 +45,7 @@ export function Projects() {
   const [allRepos, setAllRepos] = useState<GitHubRepo[]>([]);
   const [selectedRepoIds, setSelectedRepoIds] = useState<number[]>([]);
   const [projectImages, setProjectImages] = useState<{ [key: number]: string }>({});
+  const [projectDescriptions, setProjectDescriptions] = useState<{ [key: number]: string }>({});
   
   const [isLoading, setIsLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -63,12 +65,16 @@ export function Projects() {
         
         const storedImages = localStorage.getItem("projectImages");
         if (storedImages) setProjectImages(JSON.parse(storedImages));
+
+        const storedDescriptions = localStorage.getItem("projectDescriptions");
+        if (storedDescriptions) setProjectDescriptions(JSON.parse(storedDescriptions));
       } catch (error) {
         console.error("Failed to parse from localStorage", error);
         // Clear corrupted data
         localStorage.removeItem("githubUsername");
         localStorage.removeItem("selectedRepoIds");
         localStorage.removeItem("projectImages");
+        localStorage.removeItem("projectDescriptions");
       }
     }
   }, [isClient]);
@@ -90,6 +96,12 @@ export function Projects() {
       localStorage.setItem("projectImages", JSON.stringify(projectImages));
     }
   }, [projectImages, isClient]);
+
+  useEffect(() => {
+    if (isClient) {
+      localStorage.setItem("projectDescriptions", JSON.stringify(projectDescriptions));
+    }
+  }, [projectDescriptions, isClient]);
   
   const fetchRepos = useCallback(async () => {
     if (!githubUsername) return;
@@ -97,6 +109,15 @@ export function Projects() {
     try {
       const repos = await getGitHubRepos(githubUsername);
       setAllRepos(repos);
+       // Sync descriptions for existing repos
+       const newDescriptions: { [key: number]: string } = {};
+       repos.forEach(repo => {
+         if (repo.description) {
+           newDescriptions[repo.id] = repo.description;
+         }
+       });
+       setProjectDescriptions(prev => ({...newDescriptions, ...prev}));
+
     } catch (error) {
       toast({
         variant: "destructive",
@@ -116,6 +137,7 @@ export function Projects() {
   }, [fetchRepos, isClient]);
   
   const displayedProjects = allRepos.filter(repo => selectedRepoIds.includes(repo.id));
+  const defaultPlaceholder = "https://placehold.co/600x400/1E88E5/FFFFFF?text=GG&font=spacgrotesk";
 
   if (!isClient) {
     return (
@@ -159,6 +181,8 @@ export function Projects() {
             setSelectedRepoIds={setSelectedRepoIds}
             projectImages={projectImages}
             setProjectImages={setProjectImages}
+            projectDescriptions={projectDescriptions}
+            setProjectDescriptions={setProjectDescriptions}
             onRefresh={fetchRepos}
             isFetchingRepos={isLoading}
           />
@@ -174,13 +198,13 @@ export function Projects() {
               <Card key={project.id} className="flex flex-col overflow-hidden transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 fade-in shine" style={{ animationDelay: `${index * 150}ms` }}>
                 <CardHeader className="p-0">
                   <Image
-                    src={projectImages[project.id] || "https://placehold.co/600x400.png"}
+                    src={projectImages[project.id] || defaultPlaceholder}
                     alt={project.name}
                     width={600}
                     height={400}
                     className="rounded-t-lg object-cover aspect-[3/2] w-full"
                     data-ai-hint="project screenshot"
-                    onError={(e) => e.currentTarget.src = "https://placehold.co/600x400.png"}
+                    onError={(e) => e.currentTarget.src = defaultPlaceholder}
                   />
                 </CardHeader>
                  <CardContent className="flex-grow p-6">
@@ -188,7 +212,7 @@ export function Projects() {
                   <div className="flex items-center pt-2">
                     {project.language && <Badge variant="secondary">{project.language}</Badge>}
                   </div>
-                  <CardDescription className="pt-4">{project.description || "No description available."}</CardDescription>
+                  <CardDescription className="pt-4">{projectDescriptions[project.id] || project.description || "No description available."}</CardDescription>
                 </CardContent>
                 <CardFooter className="flex justify-start gap-4">
                   <Button asChild variant="outline" size="sm">

@@ -1,6 +1,7 @@
 
 "use client";
 
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -13,11 +14,14 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Settings, RefreshCw, Loader2, Trash2 } from "lucide-react";
+import { Settings, RefreshCw, Loader2, Trash2, Wand2 } from "lucide-react";
 import type { GitHubRepo } from "./sections/projects";
 import Image from "next/image";
+import { generateProjectDescription } from "@/ai/flows/generate-project-description";
+import { useToast } from "@/hooks/use-toast";
 
 interface ManageProjectsDialogProps {
   isOpen: boolean;
@@ -29,6 +33,8 @@ interface ManageProjectsDialogProps {
   setSelectedRepoIds: (ids: number[]) => void;
   projectImages: { [key: number]: string };
   setProjectImages: (images: { [key: number]: string }) => void;
+  projectDescriptions: { [key: number]: string };
+  setProjectDescriptions: (descriptions: { [key: number]: string }) => void;
   onRefresh: () => void;
   isFetchingRepos: boolean;
 }
@@ -43,10 +49,15 @@ export function ManageProjectsDialog({
   setSelectedRepoIds,
   projectImages,
   setProjectImages,
+  projectDescriptions,
+  setProjectDescriptions,
   onRefresh,
   isFetchingRepos,
 }: ManageProjectsDialogProps) {
   
+  const { toast } = useToast();
+  const [generatingStates, setGeneratingStates] = useState<{[key: number]: boolean}>({});
+
   const handleCheckboxChange = (repoId: number) => {
     const newSelectedRepoIds = selectedRepoIds.includes(repoId)
       ? selectedRepoIds.filter((id) => id !== repoId)
@@ -73,6 +84,39 @@ export function ManageProjectsDialog({
     delete newProjectImages[repoId];
     setProjectImages(newProjectImages);
   };
+  
+  const handleDescriptionChange = (repoId: number, value: string) => {
+    setProjectDescriptions({
+      ...projectDescriptions,
+      [repoId]: value,
+    });
+  };
+
+  const handleGenerateDescription = async (repo: GitHubRepo) => {
+    setGeneratingStates(prev => ({...prev, [repo.id]: true}));
+    try {
+      const result = await generateProjectDescription({
+        projectName: repo.name,
+        language: repo.language
+      });
+      if (result.description) {
+        handleDescriptionChange(repo.id, result.description);
+        toast({
+            title: "Description Generated!",
+            description: `A new description for "${repo.name}" has been created.`,
+        });
+      }
+    } catch (error) {
+      console.error("Error generating description", error);
+      toast({
+          variant: "destructive",
+          title: "Generation Failed",
+          description: "Could not generate a description for this project.",
+      });
+    } finally {
+      setGeneratingStates(prev => ({...prev, [repo.id]: false}));
+    }
+  };
 
 
   const selectedRepos = allRepos.filter(repo => selectedRepoIds.includes(repo.id));
@@ -85,11 +129,11 @@ export function ManageProjectsDialog({
           <span className="sr-only">Manage Projects</span>
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px] md:max-w-[700px]">
+      <DialogContent className="sm:max-w-[425px] md:max-w-[800px] lg:max-w-[1000px]">
         <DialogHeader>
           <DialogTitle>Manage Projects</DialogTitle>
           <DialogDescription>
-            Select repositories to display and upload a custom image for each project.
+            Select repositories to display and customize their content.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
@@ -115,10 +159,10 @@ export function ManageProjectsDialog({
               </Button>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div>
               <Label>Select Repositories</Label>
-              <ScrollArea className="h-72 w-full rounded-md border mt-2">
+              <ScrollArea className="h-96 w-full rounded-md border mt-2">
                 <div className="p-4">
                   {isFetchingRepos ? (
                      <div className="flex justify-center items-center h-full">
@@ -149,39 +193,65 @@ export function ManageProjectsDialog({
               </ScrollArea>
             </div>
             <div>
-                <Label>Project Images</Label>
-                <ScrollArea className="h-72 w-full rounded-md border mt-2">
-                    <div className="p-4 space-y-4">
+                <Label>Customize Projects</Label>
+                <ScrollArea className="h-96 w-full rounded-md border mt-2">
+                    <div className="p-4 space-y-6">
                         {selectedRepos.length > 0 ? selectedRepos.map(repo => (
-                            <div key={`img-${repo.id}`} className="space-y-2">
-                                <Label htmlFor={`img-upload-${repo.id}`} className="text-sm font-medium">{repo.name}</Label>
-                                <div className="flex items-center gap-2">
-                                  <Input 
-                                      id={`img-upload-${repo.id}`}
-                                      type="file"
-                                      accept="image/*"
-                                      onChange={(e) => handleImageUpload(repo.id, e)}
-                                      className="text-xs h-9 flex-grow"
-                                  />
-                                  {projectImages[repo.id] && (
-                                    <>
-                                      <Image 
-                                        src={projectImages[repo.id]} 
-                                        alt={`${repo.name} preview`} 
-                                        width={32} 
-                                        height={32} 
-                                        className="rounded-sm object-cover h-8 w-8"
-                                      />
-                                      <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => handleRemoveImage(repo.id)}>
-                                        <Trash2 className="h-4 w-4" />
-                                        <span className="sr-only">Remove image</span>
+                            <div key={`custom-${repo.id}`} className="space-y-3 p-3 rounded-md bg-background/50">
+                                <Label htmlFor={`desc-${repo.id}`} className="text-base font-semibold">{repo.name}</Label>
+                                
+                                <div className="space-y-1">
+                                    <div className="flex justify-between items-center">
+                                      <Label htmlFor={`desc-${repo.id}`} className="text-xs font-medium text-muted-foreground">Description</Label>
+                                      <Button 
+                                          size="sm" 
+                                          variant="ghost" 
+                                          className="text-xs h-7"
+                                          onClick={() => handleGenerateDescription(repo)}
+                                          disabled={generatingStates[repo.id]}
+                                      >
+                                          {generatingStates[repo.id] ? <Loader2 className="w-3 h-3 mr-1.5 animate-spin" /> : <Wand2 className="w-3 h-3 mr-1.5" />}
+                                          Generate with AI
                                       </Button>
-                                    </>
-                                  )}
+                                    </div>
+                                    <Textarea
+                                      id={`desc-${repo.id}`}
+                                      value={projectDescriptions[repo.id] || repo.description || ""}
+                                      onChange={(e) => handleDescriptionChange(repo.id, e.target.value)}
+                                      placeholder="Enter project description..."
+                                      className="h-24"
+                                    />
+                                </div>
+                                <div className="space-y-1">
+                                    <Label htmlFor={`img-upload-${repo.id}`} className="text-xs font-medium text-muted-foreground">Custom Image</Label>
+                                    <div className="flex items-center gap-2">
+                                      <Input 
+                                          id={`img-upload-${repo.id}`}
+                                          type="file"
+                                          accept="image/*"
+                                          onChange={(e) => handleImageUpload(repo.id, e)}
+                                          className="text-xs h-9 flex-grow"
+                                      />
+                                      {projectImages[repo.id] && (
+                                        <>
+                                          <Image 
+                                            src={projectImages[repo.id]} 
+                                            alt={`${repo.name} preview`} 
+                                            width={32} 
+                                            height={32} 
+                                            className="rounded-sm object-cover h-8 w-8"
+                                          />
+                                          <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => handleRemoveImage(repo.id)}>
+                                            <Trash2 className="h-4 w-4" />
+                                            <span className="sr-only">Remove image</span>
+                                          </Button>
+                                        </>
+                                      )}
+                                    </div>
                                 </div>
                             </div>
                         )) : (
-                            <p className="text-sm text-muted-foreground text-center pt-4">Select a repository to upload an image.</p>
+                            <p className="text-sm text-muted-foreground text-center pt-4">Select a repository to customize it.</p>
                         )}
                     </div>
                 </ScrollArea>

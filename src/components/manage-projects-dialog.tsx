@@ -15,7 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Settings, RefreshCw, Loader2, Upload, Trash2 } from "lucide-react";
+import { Settings, RefreshCw, Loader2 } from "lucide-react";
 import type { GitHubRepo } from "./sections/projects";
 import Image from "next/image";
 
@@ -66,12 +66,6 @@ export function ManageProjectsDialog({
       };
       reader.readAsDataURL(file);
     }
-  };
-
-  const handleImageRemove = (repoId: number) => {
-    const newProjectImages = { ...projectImages };
-    delete newProjectImages[repoId];
-    setProjectImages(newProjectImages);
   };
 
   const selectedRepos = allRepos.filter(repo => selectedRepoIds.includes(repo.id));
@@ -162,21 +156,15 @@ export function ManageProjectsDialog({
                                       onChange={(e) => handleImageUpload(repo.id, e)}
                                       className="text-xs h-9"
                                   />
-                                  {projectImages[repo.id] ? (
-                                    <>
-                                      <Image 
-                                        src={projectImages[repo.id]} 
-                                        alt={`${repo.name} preview`} 
-                                        width={32} 
-                                        height={32} 
-                                        className="rounded-sm object-cover h-8 w-8"
-                                      />
-                                      <Button variant="destructive" size="icon" onClick={() => handleImageRemove(repo.id)} className="h-8 w-8">
-                                          <Trash2 className="h-4 w-4" />
-                                          <span className="sr-only">Remove image</span>
-                                      </Button>
-                                    </>
-                                  ) : null}
+                                  {projectImages[repo.id] && (
+                                    <Image 
+                                      src={projectImages[repo.id]} 
+                                      alt={`${repo.name} preview`} 
+                                      width={32} 
+                                      height={32} 
+                                      className="rounded-sm object-cover h-8 w-8"
+                                    />
+                                  )}
                                 </div>
                             </div>
                         )) : (
@@ -194,4 +182,3 @@ export function ManageProjectsDialog({
     </Dialog>
   );
 }
-

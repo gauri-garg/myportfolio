@@ -25,12 +25,12 @@ export function About() {
           <div className="space-y-2 fade-in">
             <Badge className="bg-primary text-primary-foreground">Experience</Badge>
             <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl font-headline">My Professional Journey</h2>
-            <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
+            <p className="max-w-[900px] text-muted-foreground text-base sm:text-lg md:text-xl">
               I thrive on building elegant solutions to complex problems. Here's a look at my journey so far.
             </p>
           </div>
         </div>
-        <div className="mx-auto grid max-w-5xl items-start gap-8 py-12 lg:grid-cols-1">
+        <div className="mx-auto grid max-w-5xl items-start gap-8 py-12">
           {experienceData.map((exp, index) => (
             <Card key={index} className="transition-all duration-300 hover:shadow-lg hover:-translate-y-1 fade-in shine" style={{ animationDelay: `${index * 150}ms` }}>
               <CardHeader className="grid grid-cols-[auto_1fr_auto] items-start gap-4 space-y-0">
@@ -38,7 +38,7 @@ export function About() {
                   <Briefcase className="h-6 w-6" />
                 </div>
                 <div className="text-left">
-                  <CardTitle className="font-headline">{exp.role}</CardTitle>
+                  <CardTitle className="font-headline text-lg sm:text-xl">{exp.role}</CardTitle>
                   <CardDescription>{exp.company}</CardDescription>
                 </div>
                 <div className="text-right text-sm text-muted-foreground">

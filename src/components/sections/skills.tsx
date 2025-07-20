@@ -21,15 +21,15 @@ export function Skills() {
           <div className="space-y-2">
             <Badge className="bg-primary text-primary-foreground">Skills</Badge>
             <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl font-headline">Technologies I Use</h2>
-            <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
+            <p className="max-w-[900px] text-muted-foreground text-base sm:text-lg md:text-xl">
               I have experience with a wide range of technologies for building modern web applications.
             </p>
           </div>
         </div>
-        <div className="mx-auto grid max-w-5xl gap-6 py-12 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mx-auto grid max-w-5xl gap-6 py-12 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
           {skillsData.map((skill, index) => (
             <Card key={skill.name} className="p-4 transition-all duration-300 hover:shadow-xl hover:scale-105 fade-in" style={{ animationDelay: `${index * 100}ms` }}>
-              <CardContent className="flex flex-col items-center justify-center p-6 space-y-4">
+              <CardContent className="flex flex-col items-center justify-center p-4 sm:p-6 space-y-4">
                 {skill.icon}
                 <h3 className="text-lg font-bold font-headline">{skill.name}</h3>
                 <div className="w-full">

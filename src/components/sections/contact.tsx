@@ -12,9 +12,9 @@ const socialLinks = [
 export function Contact() {
   return (
     <section id="contact" className="w-full py-12 md:py-24 lg:py-32">
-      <div className="container grid items-center justify-center gap-8 px-4 md:px-6 lg:grid-cols-2 lg:gap-16">
+      <div className="container grid items-center justify-center gap-8 px-4 text-center md:px-6 lg:grid-cols-2 lg:gap-16 lg:text-left">
         <div className="space-y-4">
-          <Badge className="bg-primary text-primary-foreground">Contact</Badge>
+          <Badge className="bg-primary text-primary-foreground mx-auto lg:mx-0">Contact</Badge>
           <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl font-headline">
             Get in Touch
           </h2>
@@ -23,7 +23,7 @@ export function Contact() {
           </p>
           <div className="space-y-4">
             <h3 className="text-lg font-semibold">Find me on social media</h3>
-            <div className="flex space-x-4">
+            <div className="flex space-x-4 justify-center lg:justify-start">
               {socialLinks.map((social) => (
                 <Button asChild key={social.name} variant="outline" size="icon" className="transition-all hover:scale-110 hover:shadow-md">
                   <Link href={social.url} target="_blank" rel="noopener noreferrer">
@@ -35,7 +35,7 @@ export function Contact() {
             </div>
           </div>
         </div>
-        <div className="w-full max-w-md">
+        <div className="w-full max-w-md mx-auto">
           <ContactForm />
         </div>
       </div>

@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useRef, useState } from "react";
@@ -81,7 +82,7 @@ export function AiAvatarGenerator() {
   };
 
   return (
-    <div className="relative group transition-transform duration-300 hover:scale-105">
+    <div className="relative group transition-transform duration-300 hover:scale-105 flex flex-col items-center gap-4">
       <Avatar className="w-32 h-32 border-4 border-background shadow-lg transition-all duration-300 group-hover:shadow-2xl">
         <AvatarImage src={avatarUrl} alt="Developer Avatar" data-ai-hint="person" />
         <AvatarFallback>GG</AvatarFallback>
@@ -90,9 +91,10 @@ export function AiAvatarGenerator() {
         <DialogTrigger asChild>
           <Button
             size="sm"
-            className="absolute -bottom-2 -right-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-primary hover:bg-primary/90 text-primary-foreground"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground"
           >
-            <Wand2 className="w-4 h-4" />
+            <Wand2 className="w-4 h-4 mr-2" />
+            Generate Avatar
           </Button>
         </DialogTrigger>
         <DialogContent className="sm:max-w-[425px]">
@@ -106,18 +108,21 @@ export function AiAvatarGenerator() {
             <div className="grid w-full max-w-sm items-center gap-1.5">
               <Label htmlFor="picture">Reference Picture (Optional)</Label>
               <div className="flex items-center gap-2">
-                 <Input id="picture" type="file" accept="image/*" onChange={handleFileChange} ref={fileInputRef} />
+                 <Input id="picture" type="file" accept="image/*" onChange={handleFileChange} ref={fileInputRef} className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90" />
                  {photoDataUri && <Avatar><AvatarImage src={photoDataUri} /></Avatar>}
               </div>
             </div>
-            <Textarea
-              id="description"
-              placeholder="e.g., A pixel art cat wearing sunglasses, in a vibrant synthwave style"
-              className="col-span-3"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              rows={4}
-            />
+            <div className="space-y-1.5">
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                id="description"
+                placeholder="e.g., A pixel art cat wearing sunglasses, in a vibrant synthwave style"
+                className="col-span-3"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                rows={4}
+              />
+            </div>
           </div>
           <DialogFooter>
             <Button
